@@ -36,7 +36,7 @@ sudo apt update && sudo apt upgrade -y
 ssh-keygen -t ed25519 -C "your-comment"
 
 # Copy public key to template
-ssh-copy-id -i ./keyname.pub devopsuser@<template-ip>
+ssh-copy-id -i ./keyname.pub devops@<template-ip>
 
 ```
 
@@ -63,30 +63,18 @@ sudo systemctl daemon-reload
 sudo systemctl restart ssh.socket
 sudo systemctl restart ssh
 ```
+### 4. /etc/hosts Entries
 
-### 4. Static IP Assignment
-We will bake the netplan template into the VM so that when we create clones we only have to change the last digit of the IP.
+All 3 nodes need to resolve each other by hostname:
 
 ```bash
-sudo vi /etc/netplan/50-cloud-init.yaml
+sudo vi /etc/hosts
 ```
-
-```yaml
-network:
-  version: 2
-  ethernets:
-    ens33:
-      dhcp4: false
-      addresses: [192.168.160.15X/24]  # We bake the template IP. .15X instead of the actual value.
-      routes:
-        - to: default
-          via: 192.168.160.2 # check using ip route show
-      nameservers:
-        addresses: [8.8.8.8, 1.1.1.1]
 ```
-Save the file but do not apply.
-
-
+192.168.160.150  excalibur
+192.168.160.151  mag
+192.168.160.152  volt
+```
 ### 5. Disable Swap
 
 kubeadm requires swap to be disabled.
@@ -305,20 +293,7 @@ sudo reboot
 
 NOTE: Use `.150` for Excalibur, `.151` for Mag, `.152` for Volt. Gateway is `192.168.160.2` (VMware NAT host).
 
-### 3. /etc/hosts Entries
-
-All 3 nodes need to resolve each other by hostname:
-
-```bash
-sudo vi /etc/hosts
-```
-
-```
-192.168.160.150  excalibur
-192.168.160.151  mag
-192.168.160.152  volt
-```
-### 4. Regenerate SSH Keys
+### 3. Regenerate SSH Keys
 
 ```bash
 # Regenerate the keys
@@ -326,7 +301,7 @@ sudo ssh-keygen -A
 ```
 NOTE: If SSH is not running properly. See [challenges.md](challenges.md#2-ssh-resulted-to-failed-status-after-cloning)
 
-### 5. Install kubeadm, kubelet, kubectl
+### 4. Install kubeadm, kubelet, kubectl
 
 These instructions are for Kubernetes v1.36.
 
