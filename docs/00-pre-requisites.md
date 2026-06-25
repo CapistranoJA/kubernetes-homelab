@@ -163,7 +163,54 @@ sudo systemctl poweroff
 
 ## Part 2: Kubernetes Prerequisites (Each Cloned Node)
 
+When cloning the template make sure that each node is a **full clone** not a linked clone as linked clone share virtual disk with the parent VM.
 
+Run the following on **each node** after cloning from the template.
+
+### 1. Post-Clone Setup
+
+```bash
+# Set hostname
+sudo hostnamectl set-hostname <excalibur|mag|volt>
+```
+### 2. Static IP Assignment
+
+```bash
+sudo vi /etc/netplan/50-cloud-init.yaml
+```
+
+```yaml
+network:
+  version: 2
+  ethernets:
+    ens33:
+      dhcp4: false
+      addresses: [192.168.160.15X/24]  # change the X per node
+      routes:
+        - to: default
+          via: 192.168.160.2 # check using ip route show
+      nameservers:
+        addresses: [8.8.8.8, 1.1.1.1]
+```
+
+```bash
+sudo netplan apply
+sudo reboot
+```
+
+### 3. /etc/hosts Entries
+
+All 3 nodes need to resolve each other by hostname:
+
+```bash
+sudo vi /etc/hosts
+```
+
+```
+192.168.160.150  excalibur
+192.168.160.151  mag
+192.168.160.152  volt
+```
 
 ---
 
