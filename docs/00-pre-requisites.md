@@ -180,6 +180,29 @@ curl -L -o runc.amd64 https://github.com/opencontainers/runc/releases/download/v
 # Install
 sudo install -m 755 runc.amd64 /usr/local/sbin/runc
 ```
+#### Step 3: Install CNI plugins
+
+```bash
+# Download (check latest version on releases page)
+curl -L -o cni-plugins-linux-amd64-v1.9.1.tgz https://github.com/containernetworking/plugins/releases/download/v1.9.1/cni-plugins-linux-amd64-v1.9.1.tgz
+
+# Extract to /opt/cni/bin
+sudo mkdir -p /opt/cni/bin
+sudo tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.9.1.tgz
+```
+NOTE: v1.9.1 is in containerd's go.mod file.
+#### Verify
+
+```bash
+# containerd running
+sudo systemctl status containerd
+
+# runc installed
+runc --version
+
+# CNI plugins present
+ls /opt/cni/bin
+```
 
 ### 8. Firewall
 
