@@ -171,6 +171,15 @@ sudo systemctl enable --now containerd
 sudo systemctl restart containerd
 grep SystemdCgroup /etc/containerd/config.toml
 ```
+#### Step 2: Install runc
+
+```bash
+# Download (v1.4.3 is selected since this is the version tested against containerd v2.3.2's CI)
+curl -L -o runc.amd64 https://github.com/opencontainers/runc/releases/download/v1.4.3/runc.amd64
+
+# Install
+sudo install -m 755 runc.amd64 /usr/local/sbin/runc
+```
 
 ### 8. Firewall
 
