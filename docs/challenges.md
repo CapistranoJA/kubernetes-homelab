@@ -8,3 +8,12 @@
 ```bash
   mkdir -p ~/.ssh && chmod 700 ~/.ssh
 ```
+
+### 2. SSH resulted to failed status after cloning
+* **Symptom:** `kex_exchange_identification: read: Connection reset by peer Connection reset by 192.168.160.150 port 2222`
+* **Cause:** Missing privilege separation directory `/run/sshd` identified via `sudo sshd -t`
+* **Resolution:**
+```bash
+  sudo mkdir -p /run/sshd
+  sudo systemctl restart ssh
+```
