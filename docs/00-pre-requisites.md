@@ -97,10 +97,34 @@ sudo swapoff -a
 # Comment out swap entry in /etc/fstab to persist across reboot
 sudo vi /etc/fstab
 ```
+### 6. Kernel Modules & sysctl
 
+```bash
+# sysctl params required by setup, params persist across reboots
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+EOF
 
+# load modules
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+EOF
 
-### 6. Firewall
+# Load overlay module immediately without reboot
+sudo modprobe overlay
+
+# Apply sysctl params without reboot
+sudo sysctl --system
+
+# Verify that net.ipv4.ip_forward is set to 1 with:
+sysctl net.ipv4.ip_forward
+
+# Verify that overlay is loaded
+lsmod | grep overlay
+```
+Note: **overlay** is explicitly loaded as Ubuntu 24.04 ships it as a loadable module (CONFIG_OVERLAY_FS=m) rather than built-in, which is required for containerd's default overlayfs snapshotter. **br_netfilter** is intentionally omitted since it was removed from kubeadm preflight checks and is the CNI's responsibility to configure if needed, per current K8s container runtime docs.
+
+### 7. Firewall
 
 The default firewall that comes with ubuntu 24.04 is UFW
 
@@ -111,14 +135,14 @@ sudo ufw allow 2222/tcp
 sudo ufw enable
 ```
 
-### 7. Unattended Security Updates
+### 8. Unattended Security Updates
 
 ```bash
 sudo apt install unattended-upgrades -y
 sudo dpkg-reconfigure unattended-upgrades
 ```
 
-### 8. Audit Logging
+### 9. Audit Logging
 
 ```bash
 # Verify auditd is running
@@ -129,7 +153,7 @@ sudo apt install auditd -y
 sudo systemctl enable auditd
 ```
 
-### 9. Cleanup and Seal Template
+### 10. Cleanup and Seal Template
 
 ```bash
 # Remove unnecessary packages
