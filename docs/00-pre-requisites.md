@@ -277,6 +277,7 @@ Run the following on **each node** after cloning from the template.
 # Set hostname
 sudo hostnamectl set-hostname <excalibur|mag|volt>
 ```
+
 ### 2. Static IP Assignment
 
 ```bash
@@ -302,6 +303,8 @@ sudo netplan apply
 sudo reboot
 ```
 
+NOTE: Use `.150` for Excalibur, `.151` for Mag, `.152` for Volt. Gateway is `192.168.160.2` (VMware NAT host).
+
 ### 3. /etc/hosts Entries
 
 All 3 nodes need to resolve each other by hostname:
@@ -315,12 +318,23 @@ sudo vi /etc/hosts
 192.168.160.151  mag
 192.168.160.152  volt
 ```
+### 4. Regenerate SSH Keys
+
+
+### 5. Install kubeadm, kubelet, kubectl
 
 ---
 
 ## Verification
 
+Before proceeding to [01 - kubeadm init](01-kubeadm-init.md), confirm on all 3 nodes:
 
+- [ ] Static IPs assigned and all 3 nodes reachable via ping from each other
+- [ ] Hostnames set correctly (`hostname` command returns correct name)
+- [ ] `/etc/hosts` has all 3 node entries
+- [ ] Swap disabled (`free -h` shows 0 swap)
+- [ ] containerd running (`systemctl status containerd`)
+- [ ] kubeadm, kubelet, kubectl installed (`kubeadm version`)
 
 ---
 [← Back to index](index.md)
