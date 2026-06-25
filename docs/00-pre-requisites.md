@@ -124,7 +124,55 @@ lsmod | grep overlay
 ```
 Note: **overlay** is explicitly loaded as Ubuntu 24.04 ships it as a loadable module (CONFIG_OVERLAY_FS=m) rather than built-in, which is required for containerd's default overlayfs snapshotter. **br_netfilter** is intentionally omitted since it was removed from kubeadm preflight checks and is the CNI's responsibility to configure if needed, per current K8s container runtime docs.
 
-### 7. Firewall
+### 7. Install Container Runtime (containerd)
+
+Installing containerd from official binaries. This includes containerd, runc, and CNI plugins.
+
+**References:**
+- [containerd releases](https://github.com/containerd/containerd/releases)
+- [runc releases](https://github.com/opencontainers/runc/releases)
+- [CNI plugins releases](https://github.com/containernetworking/plugins/releases)
+- [containerd getting started](https://github.com/containerd/containerd/blob/main/docs/getting-started.md)
+
+#### Step 1: Install containerd
+
+```bash
+# Download 2.3.2 — current LTS until April 30, 2028, compatible with k8s v1.36
+curl -L -o /tmp/containerd-2.3.2-linux-amd64.tar.gz \
+  https://github.com/containerd/containerd/releases/download/v2.3.2/containerd-2.3.2-linux-amd64.tar.gz
+
+# Extract to /usr/local
+sudo tar Cxzvf /usr/local /tmp/containerd-2.3.2-linux-amd64.tar.gz
+
+# Download systemd service unit
+sudo mkdir -p /usr/local/lib/systemd/system
+sudo curl -L -o /usr/local/lib/systemd/system/containerd.service \
+  https://raw.githubusercontent.com/containerd/containerd/main/containerd.service
+
+sudo systemctl daemon-reload
+
+# Generate default config
+sudo mkdir -p /etc/containerd
+sudo containerd config default > /etc/containerd/config.toml
+```
+
+Edit `/etc/containerd/config.toml` and set `SystemdCgroup` to `true` under the runc options:
+
+```toml
+[plugins.'io.containerd.cri.v1.runtime'.containerd.runtimes.runc.options]
+  SystemdCgroup = true
+```
+
+Note: Only this field needs to be changed. The rest of the options can be left as default.
+
+```bash
+# Enable and verify
+sudo systemctl enable --now containerd
+sudo systemctl restart containerd
+grep SystemdCgroup /etc/containerd/config.toml
+```
+
+### 8. Firewall
 
 The default firewall that comes with ubuntu 24.04 is UFW
 
@@ -135,14 +183,14 @@ sudo ufw allow 2222/tcp
 sudo ufw enable
 ```
 
-### 8. Unattended Security Updates
+### 9. Unattended Security Updates
 
 ```bash
 sudo apt install unattended-upgrades -y
 sudo dpkg-reconfigure unattended-upgrades
 ```
 
-### 9. Audit Logging
+### 10. Audit Logging
 
 ```bash
 # Verify auditd is running
@@ -153,7 +201,7 @@ sudo apt install auditd -y
 sudo systemctl enable auditd
 ```
 
-### 10. Cleanup and Seal Template
+### 11. Cleanup and Seal Template
 
 ```bash
 # Remove unnecessary packages
