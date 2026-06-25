@@ -320,6 +320,11 @@ sudo vi /etc/hosts
 ```
 ### 4. Regenerate SSH Keys
 
+```bash
+# Regenerate the keys
+sudo ssh-keygen -A
+```
+NOTE: If SSH is not running properly. See [challenges.md](challenges.md#2-ssh-resulted-to-failed-status-after-cloning)
 
 ### 5. Install kubeadm, kubelet, kubectl
 
