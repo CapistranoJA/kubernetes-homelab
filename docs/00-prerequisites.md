@@ -301,7 +301,27 @@ sudo ssh-keygen -A
 ```
 NOTE: If SSH is not running properly. See [challenges.md](challenges.md#2-ssh-resulted-to-failed-status-after-cloning)
 
-### 4. Install kubeadm, kubelet, kubectl
+### 4. Firewall - Node/Role Specific Ports
+
+#### Controller Plane
+```bash
+sudo ufw allow 6443/tcp
+sudo ufw allow 2379:2380/tcp
+sudo ufw allow 10250/tcp
+sudo ufw allow 10257/tcp
+sudo ufw allow 10259/tcp
+```
+
+#### Worker Nodes
+```bash
+sudo ufw allow 10250/tcp
+sudo ufw allow 10256/tcp
+sudo ufw allow 30000:32767/tcp
+sudo ufw allow 30000:32767/udp
+```
+> **Note**: Refer to [Kubernetes Networking Reference](https://kubernetes.io/docs/reference/networking/ports-and-protocols/) for indepth ports and protocols that should be allowed.
+
+### 5. Install kubeadm, kubelet, kubectl
 
 These instructions are for Kubernetes v1.36.
 
