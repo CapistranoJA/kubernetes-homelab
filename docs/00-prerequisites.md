@@ -239,13 +239,13 @@ sudo truncate -s 0 /etc/machine-id
 # Clear SSH host keys (regenerated post-clone)
 sudo rm /etc/ssh/ssh_host_*
 
-# Clear current user history
-history -c
-history -w
-
 # Clear history files
 truncate -s 0 ~/.bash_history
 sudo truncate -s 0 /root/.bash_history
+
+# Clear current user history
+history -c
+history -w
 
 # Shutdown the server
 sudo systemctl poweroff 
