@@ -42,3 +42,24 @@
 > **Note:** This is not a security incident — it is the expected 
 > result of SSH host key regeneration by design. See 
 > [Part 1 Step 11 - Cleanup and Seal Template](00-prerequisites.md#11-cleanup-and-seal-template)
+
+### 4. PasswordAuthentication not taking effect after configuration
+
+* **Symptom:** `sudo sshd -T | grep passwordauthentication` returns 
+  `passwordauthentication yes` despite setting `PasswordAuthentication no` 
+  in `/etc/ssh/sshd_config`
+* **Cause:** `/etc/ssh/sshd_config.d/50-cloud-init.conf` contains 
+  `PasswordAuthentication yes` which takes precedence over the main 
+  `sshd_config` file. Ubuntu 24.04 cloud-init generates this override 
+  file during installation.
+* **Resolution:**
+```bash
+  sudo vi /etc/ssh/sshd_config.d/50-cloud-init.conf
+  # Change: PasswordAuthentication yes → no
+
+  sudo systemctl restart ssh
+
+  # Verify
+  sudo sshd -T | grep passwordauthentication
+  # Expected: passwordauthentication no
+```
