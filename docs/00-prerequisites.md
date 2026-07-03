@@ -364,12 +364,12 @@ sudo apt-mark hold kubelet kubeadm kubectl
 
 Before proceeding to [01 - kubeadm init](01-kubeadm-init.md), confirm on all 3 nodes:
 
-- [ ] Static IPs assigned and all 3 nodes reachable via ping from each other
-- [ ] Hostnames set correctly (`hostname` command returns correct name)
-- [ ] `/etc/hosts` has all 3 node entries
-- [ ] Swap disabled (`free -h` shows 0 swap)
-- [ ] containerd running (`systemctl status containerd`)
-- [ ] kubeadm, kubelet, kubectl installed (`kubeadm version`)
+- [x] Static IPs assigned and all 3 nodes reachable via ping from each other
+- [x] Hostnames set correctly (`hostname` command returns correct name)
+- [x] `/etc/hosts` has all 3 node entries
+- [x] Swap disabled (`free -h` shows 0 swap)
+- [x] containerd running (`systemctl status containerd`)
+- [x] kubeadm, kubelet, kubectl installed (`kubeadm version`)
 
 ---
 [← Back to index](index.md)
