@@ -4,7 +4,7 @@
 
 ![Static Badge](https://img.shields.io/badge/Status-In--Progress-yellow)
 
-- [00 - Prerequisites](00-pre-requisites.md)
+- [00 - Prerequisites](00-prerequisites.md)
 
 
 ## Phase 2: Platform Services
