@@ -162,6 +162,14 @@ kubectl get nodes
 ```
 ## Joining Worker Nodes
 
+Run on **Mag** and **Volt**, using the join command saved from the control-plane init step:
+ 
+```bash
+sudo kubeadm join 192.168.160.150:6443 \
+  --token <token> \
+  --discovery-token-ca-cert-hash sha256:<hash>
+```
+ 
 ## Verifying Cluster Health
 
 ## Verification
