@@ -30,6 +30,8 @@ kind: InitConfiguration
 localAPIEndpoint:
   advertiseAddress: "192.168.160.150"
   bindPort: 6443
+nodeRegistration:
+  name: excalibur
 ```
 ### Run Init
 
@@ -193,3 +195,11 @@ kubectl get pods -n kube-system -l k8s-app=kube-dns
 ```
 
 ## Verification
+Before proceeding to the next doc, confirm:
+ 
+- [x] `kubectl get nodes` shows all 3 nodes as `Ready`
+- [x] All pods in `kube-system` and `calico-system` are `Running`
+- [x] CoreDNS pods are running and healthy
+
+---
+[← Back to index](index.md)
