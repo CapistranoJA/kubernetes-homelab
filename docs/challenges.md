@@ -25,7 +25,7 @@
   @    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!     @
   @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   Host key verification failed.
-```w
+```
 * **Cause:** Expected behavior — SSH host keys are regenerated on 
   first boot after cloning. The local `known_hosts` file still 
   has the old template's host key fingerprint for that IP.
