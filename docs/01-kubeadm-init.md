@@ -68,6 +68,26 @@ scp -P 2222 -i devops@192.168.160.150:/home/devops/.kube/config ~/.kube/config
  
 ## Installing the CNI (Pod Network)
 
+> **Note:** 00-prerequisites.md installed the low-level CNI plugin binaries (containernetworking/plugins) required by containerd, but a CNI network provider (the actual pod networking implementation) still needs to be deployed separately. This project uses **Calico**.
+>
+> **Alternative:** Cilium is a popular alternative that uses eBPF instead of iptables for its dataplane, offering better performance at scale and built-in observability (Hubble). Calico was chosen here for its maturity and simpler operational model.
+ 
+### Calico Prerequisites
+ 
+Before installing, confirm the following on all 3 nodes (per [Calico's system requirements](https://docs.tigera.io/calico/latest/getting-started/kubernetes/requirements)):
+ 
+- [x] Kernel ≥ 5.10 — Ubuntu 24.04 satisfies this by default, no action needed
+- [x] No competing iptables manager (firewalld, etc.) — not applicable here, this project uses UFW throughout
+- [x] NetworkManager isn't managing Calico's interfaces — if NetworkManager is present on the nodes, it needs to be configured to ignore `cali*`, `tunl*` (IPIP), and `vxlan.calico` (VXLAN) interfaces, otherwise it may interfere with Calico's networking
+- [x] UFW allows Calico's required ports (see below)
+
+**Additional UFW rules needed (all 3 nodes)**:
+ 
+```bash
+# BGP - Calico's routing protocol between nodes
+sudo ufw allow 179/tcp
+```
+> **Note:** These ports aren't covered by the role-specific UFW rules in [00-prerequisites.md](00-prerequisites.md#4-firewall---noderole-specific-ports), since those only cover core Kubernetes control-plane/kubelet ports, not CNI-specific traffic. If Calico is later switched from IPIP to VXLAN mode, `sudo ufw allow 4789/udp` would replace the `ipip` rule instead.
 ## Joining Worker Nodes
 
 ## Verifying Cluster Health
