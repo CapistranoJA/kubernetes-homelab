@@ -88,6 +88,78 @@ Before installing, confirm the following on all 3 nodes (per [Calico's system re
 sudo ufw allow 179/tcp
 ```
 > **Note:** These ports aren't covered by the role-specific UFW rules in [00-prerequisites.md](00-prerequisites.md#4-firewall---noderole-specific-ports), since those only cover core Kubernetes control-plane/kubelet ports, not CNI-specific traffic. If Calico is later switched from IPIP to VXLAN mode, `sudo ufw allow 4789/udp` would replace the `ipip` rule instead.
+
+### Install Calico (Tigera Operator, eBPF dataplane)
+ 
+This project uses the **Tigera Operator** install method rather than the older raw-manifest approach, the operator manages Calico's CRDs and lifecycle declaratively via an `Installation` custom resource, rather than requiring manual edits to DaemonSet env vars.
+ 
+**1. Install the Tigera Operator and CRDs**
+ 
+```bash
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.32.1/manifests/v1_crd_projectcalico_org.yaml
+
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.32.1/manifests/tigera-operator.yaml
+```
+ 
+**2. Download the custom resources (eBPF dataplane)**
+ 
+```bash
+curl -O https://raw.githubusercontent.com/projectcalico/calico/v3.32.1/manifests/custom-resources-bpf.yaml
+
+```
+ 
+> **Note:** Calico's eBPF dataplane is used here instead of the traditional iptables default, for better performance and lower latency, similar to why Cilium defaults to eBPF. This is a more advanced/newer dataplane option compared to Calico's classic iptables mode.
+
+**3. Set the pod CIDR in the custom resources manifest**
+ 
+Before applying, edit `custom-resources-bpf.yaml` and set the pod IP pool to match this cluster's `podSubnet`:
+ 
+```yaml
+spec:
+  calicoNetwork:
+    ipPools:
+    - name: default-ipv4-ippool
+      cidr: 10.244.0.0/16
+      encapsulation: VXLANCrossSubnet   
+```
+ 
+> **Note:** Unlike the older manifest-based install (which set `CALICO_IPV4POOL_CIDR` as a DaemonSet env var), the Operator method configures the pod IP pool declaratively through this `Installation` custom resource instead.
+ 
+**4. Apply the manifest**
+ 
+```bash
+kubectl create -f custom-resources-bpf.yaml
+```
+ 
+**5. Monitor the deployment**
+ 
+```bash
+watch kubectl get tigerastatus
+```
+ 
+All components should show `True` under `AVAILABLE` after a few minutes:
+ 
+```
+NAME                            AVAILABLE   PROGRESSING   DEGRADED   SINCE
+apiserver                       True        False         False      4m9s
+calico                          True        False         False      3m29s
+goldmane                        True        False         False      3m39s
+ippools                         True        False         False      6m4s
+kubeproxy-monitor               True        False         False      6m15s
+whisker                         True        False         False      3m19s
+```
+ 
+### Verify Calico
+ 
+```bash
+kubectl get pods -n calico-system
+```
+
+All Calico pods should reach `Running`. Node status should flip from `NotReady` to `Ready` once the CNI is up:
+
+```bash
+kubectl get nodes
+```
 ## Joining Worker Nodes
 
 ## Verifying Cluster Health
