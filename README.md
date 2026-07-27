@@ -17,6 +17,7 @@ VMnet8 (NAT) was chosen over Bridged networking to keep the lab isolated from th
 |---|---|
 | 192.168.160.0/24 | VMware Network Adapter VMnet8 |
 | 192.168.160.150-.152 | Node Static IPs |
+| 10.244.0.0/16 | Pod CIDR |
 | 192.168.160.20-.27 | Metal LB IP Pool |
 | 192.168.160.1 | Reserved for Host OS that runs the VMs |
 
