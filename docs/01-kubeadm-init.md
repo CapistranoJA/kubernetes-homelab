@@ -172,4 +172,24 @@ sudo kubeadm join 192.168.160.150:6443 \
  
 ## Verifying Cluster Health
 
+Run kubectl to check nodes:
+ 
+```bash
+# All 3 nodes should show STATUS = Ready
+kubectl get nodes -o wide
+ 
+# All system pods (kube-system + calico-system) should be Running
+kubectl get pods -A
+```
+ 
+Optional deeper checks:
+ 
+```bash
+# Confirm kubelet is healthy on each node. Needs to SSH on each node
+sudo systemctl status kubelet
+ 
+# Confirm CoreDNS pods are running (2/2 by default)
+kubectl get pods -n kube-system -l k8s-app=kube-dns
+```
+
 ## Verification
