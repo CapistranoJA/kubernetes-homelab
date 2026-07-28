@@ -94,4 +94,4 @@ Before proceeding to the next doc, confirm:
 - [x] All pods in `argocd` are `Running` (`kubectl get pods -n argocd`)
 - [x] `argocd account get-user-info` succeeds via CLI
 - [x] UI loads at `https://localhost:8080` and shows an empty Applications dashboard
-- [ ] A test Application syncs successfully and reports `Synced`/`Healthy`
+- [x] A test Application syncs successfully and reports `Synced`/`Healthy`
