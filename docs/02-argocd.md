@@ -73,6 +73,21 @@ Change the password immediately after first login:
 ```bash
 argocd account update-password
 ```
+### Create a new Argocd App
+This can be done in the UI by creating a new app and supplying the git repo url and path. Below will be the ArgoCD Application:
+
+```bash
+Application Name: Tenno Cluster
+Project Name: Default
+Sync Policy: Manual
+
+Repository URL: https://github.com/CapistranoJA/kubernetes-homelab.git
+Path: Manifests
+
+Cluster URL: https://kubernetes.default.svc
+Namespace: default
+```
+
 ## Verification
 Before proceeding to the next doc, confirm:
 
