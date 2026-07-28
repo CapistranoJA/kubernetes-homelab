@@ -33,7 +33,37 @@ On your workstation (not a cluster node):
 brew install argocd
 argocd version --client
 ```
+### Accessing ArgoCD UI
 
+During initial setup, ArgoCD was accessed using Kubernetes port forwarding.
+
+```bash
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+```
+
+The web interface is then available at:
+
+```
+https://localhost:8080
+```
+### Retrieve the initial admin password
+ 
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+```
+### Login via UI 
+You can visit https://localhost:8080. By default the TLS Certificates that argocd uses are self-signed, the implementation of a custom ssl certificate will be added later on.
+
+You can also login via CLI using
+```bash
+argocd login localhost:8080 --username admin --password <password-from-previous step> --insecure
+```
+
+Change the password immediately after first login:
+ 
+```bash
+argocd account update-password
+```
 ## Verification
 
 
