@@ -6,6 +6,15 @@ This document covers installing ArgoCD into the cluster and transitioning from i
 
 ## Why ArgoCD?
 
+Everything so far has been `kubectl apply -f` by hand. That's fine working solo, but there's no
+record of what changed or when, and if something drifts (a manual `kubectl edit` to
+unblock something) nothing catches it. The cluster and whatever's in the repo just
+quietly disagree.
+
+ArgoCD watches a git repo and keeps the cluster in sync with it. Push to git, ArgoCD
+applies it. Also sets up app-of-apps later. one Application managing all the others
+(Harbor, cert-manager, etc.) instead of installing each by hand.
+
 ## Installing ArgoCD
 Refer to the [Official ArgoCD Docs](https://argo-cd.readthedocs.io/en/stable/getting_started/) for a more detailed explanation.
 
