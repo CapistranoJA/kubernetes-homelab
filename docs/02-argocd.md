@@ -82,16 +82,18 @@ Project Name: Default
 Sync Policy: Manual
 
 Repository URL: https://github.com/CapistranoJA/kubernetes-homelab.git
-Path: Manifests
+Path: manifests
 
 Cluster URL: https://kubernetes.default.svc
 Namespace: default
 ```
+> **Note**: This Application serves as the root application and watches the manifests/ folder. It's intentionally empty for now. In the next steps, I'll add a test Application to verify that the GitOps workflow is working before moving on to the actual applications that I plan on running.
 
+>**Why Manual Sync?** I haven't set up a CI pipeline yet, so I don't want every commit to be applied automatically. Using Manual Sync gives me a chance to review changes in Argo CD before they're deployed. Once CI is in place to validate manifests before they reach `main`, this can be switched to Automated.
 ## Verification
 Before proceeding to the next doc, confirm:
 
 - [x] All pods in `argocd` are `Running` (`kubectl get pods -n argocd`)
 - [x] `argocd account get-user-info` succeeds via CLI
 - [x] UI loads at `https://localhost:8080` and shows an empty Applications dashboard
-- [ ] A test Application syncs successfully and reports `Synced`/`Healthy`
+- [x] A Root Application syncs successfully and reports `Synced`/`Healthy`
