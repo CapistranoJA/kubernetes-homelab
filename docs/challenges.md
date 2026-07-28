@@ -63,3 +63,55 @@
   sudo sshd -T | grep passwordauthentication
   # Expected: passwordauthentication no
 ```
+
+### 5. Calico networking failure after full cluster restart
+
+* **Symptom:** After restarting all cluster nodes, one `calico-node` pod remained
+  `0/1 Ready` with repeated readiness probe failures:
+
+  ```
+  calico/node is not ready: BIRD is not ready:
+  error querying BIRD: unable to connect to BIRDv4 socket:
+  dial unix /var/run/calico/bird.ctl: connect: connection refused
+  ```
+
+  Any workload scheduled on the affected node was unable to reach the
+  Kubernetes API Service (`10.96.0.1:443`). For example, Argo CD pods entered
+  `CreateContainerConfigError` or `Init:Error`, with init container logs
+  reporting:
+
+  ```
+  dial tcp 10.96.0.1:443: i/o timeout
+  ```
+
+  The Tigera `Installation` resource also reported:
+
+  ```
+  Ready: False
+  Degraded: True
+  Reason: PodFailure
+  ```
+
+* **Cause:** This cluster uses the Calico eBPF dataplane with
+  `VXLANCrossSubnet` encapsulation, which requires UDP/4789 for VXLAN traffic.
+  The Tigera Operator also deployed **Typha**, which communicates with
+  `calico-node` over TCP/5473. These ports were not permitted through UFW,
+  preventing Calico from fully initializing on the affected node. As a result,
+  pod networking on that node never became operational, causing unrelated
+  workloads to fail when accessing ClusterIP services such as the Kubernetes
+  API.
+
+* **Resolution:**
+
+  ```bash
+  # Run on every cluster node
+  sudo ufw allow 4789/udp
+  sudo ufw allow 5473/tcp
+  ```
+
+  After updating the firewall rules, verify that Calico recovers:
+
+  ```bash
+  kubectl get pods -n calico-system
+  kubectl get installation default
+  ```
