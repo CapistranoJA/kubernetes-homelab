@@ -96,6 +96,6 @@ kubectl apply -f root-app.yaml
 
 ## Verification
 
-- [ ] All pods in `argocd` are `Running` (`kubectl get pods -n argocd`)
-- [ ] ArgoCD Application itself is `Synced`/`Healthy`
-- [ ] A Root Application syncs successfully and reports `Synced`/`Healthy`
+- [x] All pods in `argocd` are `Running` (`kubectl get pods -n argocd`)
+- [x] ArgoCD Application itself is `Synced`/`Healthy`
+- [x] A Root Application syncs successfully and reports `Synced`/`Healthy`

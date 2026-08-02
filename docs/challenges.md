@@ -162,3 +162,68 @@
   kubectl get pods -n argocd
   kubectl get pods -n calico-system
   ```
+
+### 7. ArgoCD Application stuck on Unknown sync status due to invalid Helm value file path
+
+* **Symptom:** The self-managed argocd Application remained stuck in Unknown sync status, and the Resources tab in the ArgoCD UI continuously displayed a loading spinner. The argocd-application-controller logs repeatedly showed:
+
+  ```bash 
+  level=warning msg="Ignoring temporary failed attempt to compare app state against repo" application=argocd error="failed to get repo objects"
+  ```
+
+also noticed compare_app_state_ms consistently taking over 20 seconds for this Application, while root application reconciled in well under a second. 
+
+* **Cause:** The Application was using a single source: that pointed directly to the Argo Helm repository (`https://argoproj.github.io/argo-helm`), while helm.valueFiles referenced a relative path:
+
+  ```yaml
+  valueFiles:
+    - ../values/argocd/argocd-values.yaml
+  ```
+The values file wasn't part of the Helm repository.It lived in the portfolio Git repository instead. Since Helm repositories only contain packaged charts, ArgoCD couldn't resolve a relative path outside of the repository root and failed with:
+
+  ```
+  error resolving value file path: file '../values/argocd/argocd-values.yaml' resolved to outside repository root
+  ```
+
+* **Resolution:** updated the Application to use ArgoCD's multi-source feature so the Helm chart could still be pulled from the Argo Helm repository while the values file was loaded from my Git repository:
+
+  ```yaml
+  spec:
+    project: default
+    sources:
+      - chart: argo-cd
+        repoURL: https://argoproj.github.io/argo-helm
+        targetRevision: 10.2.2
+        helm:
+          releaseName: argocd
+          valueFiles:
+            - $values/apps/values/argocd/argocd-values.yaml
+          ignoreMissingValueFiles: true
+      - repoURL: https://github.com/CapistranoJA/kubernetes-homelab.git
+        targetRevision: HEAD
+        ref: values
+  ```
+
+The `ref: values` field exposes the Git repository as $values, allowing the Helm chart to reference files from that repository instead of trying to resolve them within the chart repository. After syncing the Application, it reconciled successfully and reached a Synced and Healthy state.
+
+  Verify:
+
+  ```bash
+  kubectl get application argocd -n argocd -o yaml
+  ```
+
+  Expected:
+
+  ```
+  status:
+    sync:
+      status: Synced
+    health:
+      status: Healthy
+  ```
+
+  Confirm resources render correctly:
+
+  ```bash
+  kubectl get pods -n argocd
+  ```
