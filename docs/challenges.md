@@ -115,9 +115,7 @@
   kubectl get pods -n calico-system
   kubectl get installation default
   ```
-Here's the entry in your established format — swap N for the next number in your list:
-
-markdown
+  
 ### 6. Pod-to-Service communication blocked by UFW forwarding policy
 
 * **Symptom:** Although all Calico components appeared healthy, workloads were
