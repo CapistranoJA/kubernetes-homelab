@@ -39,6 +39,8 @@ spec:
 
 Currently our installation of ArgoCD is via downloading manifests and kubectl apply. This means that if we have changes in ArgoCD it will not go through git but instead manually. While the current setup works, to fully utilize ArgoCD and to excersise gitops we will need to make ArgoCD self managed so that any changes will go through git. 
 
+Below shows the `ArgoCD` application definition.
+
 ```yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
@@ -54,7 +56,7 @@ spec:
     helm:
       releaseName: argocd
       valueFiles:
-        - argocd-values.yaml
+        - ../values/argocd/argocd-values.yaml
       ignoreMissingValueFiles: true 
 
   destination:
@@ -68,9 +70,8 @@ spec:
       prune: true
       selfHeal: true
 ```
-
 ## Verification
 
-- [x] All pods in `argocd` are `Running` (`kubectl get pods -n argocd`)
-- [x] ArgoCD Application itself is `Synced`/`Healthy`
-- [x] A Root Application syncs successfully and reports `Synced`/`Healthy`
+- [ ] All pods in `argocd` are `Running` (`kubectl get pods -n argocd`)
+- [ ] ArgoCD Application itself is `Synced`/`Healthy`
+- [ ] A Root Application syncs successfully and reports `Synced`/`Healthy`
