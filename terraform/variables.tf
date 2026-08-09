@@ -23,5 +23,10 @@ variable "k8s_nodes" {
     cpu = number
     disk = number
   }))
+}
 
+variable "k8s_network_name" {
+  description = "Kubernetes cluster network name"
+  type        = string
+  default     = "libvirt-homelab-nat"
 }
