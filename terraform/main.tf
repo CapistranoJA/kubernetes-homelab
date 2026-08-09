@@ -22,6 +22,23 @@ resource "libvirt_volume" "k8s_volume" {
       type = "qcow2"
     }
   }
+  create ={
+    content = {
+        url = var.k8s_ubuntu_image_url
+    }
+  }
+}
+
+resource "libvirt_cloudinit_disk" "k8s_cloudinit"{
+    for_each = var.k8s_nodes
+    name = "k8s-cloudinit-${each.key}"
+    user_data = templatefile("${path.module}/cloud-init/user-data.tftpl", {
+        hostname = each.key
+    })
+    meta_data = yamlencode({
+        instance_id = each.key
+        local_hostname = each.key
+    })
 }
 
 resource "libvirt_domain" "k8s_domain" {
@@ -39,7 +56,8 @@ resource "libvirt_domain" "k8s_domain" {
 
   os = {
     type = "hvm"
-    boot_dev = ["hd"]
+    type_arch = "x86_64"
+    type_machine = "q35"
   }
   
   devices = {
@@ -70,9 +88,19 @@ resource "libvirt_domain" "k8s_domain" {
         model = {
             type = "virtio"
         }
+        type = "network"
       }
-  ]
+    ]
+    graphics = [
+      {
+        vnc ={
+            autoport = true
+            listen = "127.0.0.1"
+        }
+      }
+    ]
+    
   }
 
-
 }
+

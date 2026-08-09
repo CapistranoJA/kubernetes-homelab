@@ -30,3 +30,8 @@ variable "k8s_network_name" {
   type        = string
   default     = "libvirt-homelab-nat"
 }
+
+variable "k8s_ubuntu_image_url" {
+  description = "Ubuntu cloud image URL"
+  type        = string
+}

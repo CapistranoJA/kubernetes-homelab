@@ -24,3 +24,5 @@ k8s_nodes = {
     disk = 61440
   }
 }
+
+k8s_ubuntu_image_url = "https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
