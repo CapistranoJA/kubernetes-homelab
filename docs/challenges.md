@@ -227,3 +227,166 @@ The `ref: values` field exposes the Git repository as $values, allowing the Helm
   ```bash
   kubectl get pods -n argocd
   ```
+
+### 8. Libvirt NAT network had DHCP but no internet connectivity
+
+* **Symptom:** Both my Ubuntu and Windows VMs were able to get an IP address from the libvirt network, but neither had internet access. My VMs received an IP and default route:
+
+  ```text
+  inet 10.9.8.155/24
+  default via 10.9.8.1
+  ```
+
+  But both of these failed:
+
+  ```bash
+  ping -c 3 1.1.1.1
+  ping -c 3 archive.ubuntu.com
+  ```
+
+  This also caused cloud-init to fail when trying to install `qemu-guest-agent`:
+
+  ```text
+  Failed to install the following packages: {'qemu-guest-agent'}
+  ```
+
+* **Cause:** I initially configured a custom NAT address range on the terraform practice project:
+
+  ```hcl
+  forward = {
+    mode = "nat"
+
+    nat = {
+      addresses = [{
+        start = cidrhost(var.network_cidr, 1)
+        end   = cidrhost(var.network_cidr, 254)
+      }]
+    }
+  }
+  ```
+
+  Upon checking, this caused libvirt to use addresses from my internal `10.9.8.0/24` network for SNAT. DHCP was still working, so my VMs could get an IP address and reach the gateway, but they could not reach anything outside the network.
+
+  This was a little confusing at first because the network looked like it was working. My VMs had an IP address, a default gateway, and DNS resolution was also working. I initially thought the issue was with cloud-init or the guest itself.
+
+* **Resolution:** I removed the custom `nat.addresses` configuration and let libvirt handle NAT automatically:
+
+  ```hcl
+  forward = {
+    mode = "nat"
+  }
+  ```
+
+  I then recreated the network and VM. After that, the VM was able to access the internet normally:
+
+  ```bash
+  ping -c 3 1.1.1.1
+  ping -c 3 archive.ubuntu.com
+  ```
+
+  Cloud-init was then able to install `qemu-guest-agent`, and the guest agent connected successfully.
+
+Verify:
+
+```bash
+systemctl status qemu-guest-agent
+```
+
+Expected:
+
+```text
+Active: active (running)
+```
+
+Then from the host:
+
+```bash
+sudo virsh domifaddr excalibur-prime --source agent
+```
+
+Returns the VM's IP address through the QEMU Guest Agent.
+
+### 9. Explicitly setting QEMU Guest Agent channel mode caused a Terraform provider error
+
+* **Symptom:** I added a QEMU Guest Agent channel to my `libvirt_domain` resource. When I explicitly set the Unix socket mode to `bind`:
+
+  ```hcl
+  channels = [
+    {
+      source = {
+        unix = {
+          mode = "bind"
+        }
+      }
+
+      target = {
+        virt_io = {
+          name = "org.qemu.guest_agent.0"
+        }
+      }
+    }
+  ]
+  ```
+
+  Terraform plan showed no error, but applying it resulted in:
+
+  ```text
+  Error: Provider produced inconsistent result after apply
+
+  .devices.channels[0].source.unix.mode: was
+  cty.StringVal("bind"), but now null.
+  ```
+
+* **Cause:** I initially tried to explicitly set the Unix socket mode to `bind` after seeing `mode='bind'` in the generated libvirt XML. However, when I set:
+
+  ```hcl
+  unix = {
+    mode = "bind"
+  }
+  ```
+
+  Terraform failed with a provider state inconsistency after the domain was created:
+
+  ```text
+  .devices.channels[0].source.unix.mode: was
+  cty.StringVal("bind"), but now null.
+  ```
+
+  Based on the error, the provider was not returning the configured `mode` value back to Terraform state after the apply. Since the empty `unix = {}` configuration created the working channel without triggering the error, explicitly setting `mode` was unnecessary in my case.
+
+
+* **Resolution:** Based on this [solution](https://github.com/dmacvicar/terraform-provider-libvirt/discussions/1231#discussioncomment-15112011), I removed the explicit `mode = "bind"` configuration and left the Unix source empty:
+
+  ```hcl
+  channels = [
+    {
+      source = {
+        unix = {}
+      }
+
+      target = {
+        virt_io = {
+          name = "org.qemu.guest_agent.0"
+        }
+      }
+    }
+  ]
+  ```
+Terraform was able to apply the domain without the result error.
+
+Verify:
+
+```bash
+sudo virsh dumpxml <vm-name>
+```
+
+It is now:
+
+```xml
+    <channel type='unix'>
+      <source mode='bind' path='/run/libvirt/qemu/channel/2-excalibur-prime/org.qemu.guest_agent.0'/>
+      <target type='virtio' name='org.qemu.guest_agent.0' state='connected'/>
+      <alias name='channel0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='1'/>
+    </channel>
+```
