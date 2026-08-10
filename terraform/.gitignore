@@ -44,3 +44,5 @@ terraform.rc
 # planout
 
 schema.json
+
+backend.hcl
