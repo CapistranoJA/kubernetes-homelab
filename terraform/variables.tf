@@ -35,3 +35,8 @@ variable "k8s_ubuntu_image_url" {
   description = "Ubuntu cloud image URL"
   type        = string
 }
+
+variable "ssh_authorized_keys" {
+  description = "List of SSH public keys for authorized access"
+  type        = string
+}

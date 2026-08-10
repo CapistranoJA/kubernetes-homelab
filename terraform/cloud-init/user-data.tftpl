@@ -1,4 +1,21 @@
+#cloud-config
 hostname: ${hostname}
+package_update: true
 packages:
   - openssh-server
-  
+  - qemu-guest-agent
+
+users:
+  - name: ubuntu
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_authorized_key}
+
+ssh_pwauth: false
+disable_root: true
+
+runcmd:
+  - systemctl enable --now qemu-guest-agent
+
+final_message: "${hostname} is ready"

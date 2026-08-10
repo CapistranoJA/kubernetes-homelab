@@ -26,3 +26,5 @@ k8s_nodes = {
 }
 
 k8s_ubuntu_image_url = "https://cloud-images.ubuntu.com/resolute/current/resolute-server-cloudimg-amd64.img"
+
+ssh_authorized_keys = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAOPY6D4v5DtTAICwB/BwvFYCitPEaVTM26voer24vFF Void Key"
