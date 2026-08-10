@@ -13,7 +13,7 @@ variable "k8s_pool_name" {
 variable "k8s_pool_path" {
   description = "Path for the Kubernetes cluster pool"
   type        = string
-  default     = "/data/lib/libvirt/images/kubernetes/"
+  default     = "/data/lib/libvirt/images/kubernetes"
 }
 
 variable "k8s_nodes" {
