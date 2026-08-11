@@ -9,17 +9,14 @@ This repo tracks a self-hosted, QEMU/KVM Kubernetes cluster built to simulate a 
 
 ## Current Status
 
-- Terraform can provision the Kubernetes VMs
-- Cloud-init configures the initial VM setup
-- Kubernetes is bootstrapped with kubeadm
-- Calico is installed as the cluster CNI
-- Argo CD is running
-- The App-of-Apps pattern is being used to manage applications
-- The infrastructure is currently being rebuilt and improved with Terraform
+- VMs are provisioned via Terraform (dmacvicar/libvirt provider)
+- Ansible is next, for kubeadm bootstrap and node configuration
+- Previous kubeadm/Calico/ArgoCD setup (see docs/01-04) is being rebuilt on top of this new Terraform foundation
 
 
 ## Architecture
-TBD.
+<img width="462" height="532" alt="Tenno-cluster drawio" src="https://github.com/user-attachments/assets/b5d70eb1-a62b-4f38-bd90-433c353e3a9b" />
+
 
 
 ## Network
@@ -29,8 +26,8 @@ VMnet8 (NAT) was chosen over Bridged networking to keep the lab isolated from th
 
 | Range | Description | 
 |---|---|
-| 10.9.8.1/24 | Libvirt-homelab-nat Gateway  |
-| TBD | Node Static IPs |
+| 10.9.8.1 | Libvirt-homelab-nat Gateway  |
+| 10.9.8.50 - 10.9.8.53 | Node Static IPs |
 | 10.244.0.0/16 | Pod CIDR |
 | TBD | Metal LB IP Pool |
 
@@ -41,6 +38,8 @@ VMnet8 (NAT) was chosen over Bridged networking to keep the lab isolated from th
 | Component | Tool | Why |
 |---|---|---|
 | Orchestration | Vanilla K8S(KUBEADM) | To better understand how Kubernetes works under the hood |
+| GitOps | ArgoCD | Its either this or flux. I opted for ArgoCD since it seems that the UI is more rich compared to flux |
+| IaC | Terraform | Its now or never. Treating infra as code made things easier to reproduce |
 
 ## Repository Structure
 
@@ -60,9 +59,8 @@ The setup documentation is split into stages:
 2. [kubeadm initialization](docs/01-kubeadm-init.md)
 3. [Argo CD](docs/02-argocd.md)
 4. [App-of-Apps](docs/03-app-of-apps.md)
-5. [Automating cluster bootstrap](docs/04-automating-cluster-bootstrap.md)
+5. [Automating cluster bootstrap](docs/04-automating-cluster-bootstrap.md) (in-progress)
 
-Current Status: Terraform Documentation steps - in progress. I created the VMs and TF files first.
 
 
 ## Challenges and Troubleshooting
