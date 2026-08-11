@@ -20,8 +20,9 @@ variable "k8s_nodes" {
   description = "Nodes definition"
   type = map(object({
     memory = number
-    cpu = number
-    disk = number
+    cpu    = number
+    disk   = number
+    ip     = string
   }))
 }
 
