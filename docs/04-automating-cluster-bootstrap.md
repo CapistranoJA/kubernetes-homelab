@@ -200,4 +200,18 @@ resource "libvirt_cloudinit_disk" "k8s_cloudinit" {
 
 ## End-to-End Provisioning Flow
 
+To provision the servers
+
+```bash
+terraform init
+terraform plan
+terrform apply
+
+```
+
 ## Verification
+
+- [x] `terraform apply` completes with no errors
+- [x] All domains in `k8s_nodes` can be started.
+- [x] Each node is reachable via SSH at its assigned static IP
+- [x] cloud-init completed successfully on each node (`cloud-init status`)
