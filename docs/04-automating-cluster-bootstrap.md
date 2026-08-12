@@ -158,6 +158,46 @@ Each node also gets a QEMU guest agent channel wired in, which is what makes `te
 
 ## Cloud-Init Integration
 
+This integration happened since installing from an ISO file is tedious and often needs manual input at every step, hostname, SSH key. Cloud-init solves the issue by injecting the config at boot time, so each nodes are prepared instead of sitting through the installer wizard per VM.
+
+Cloud-init is generated per node with `libvirt_cloudinit_disk`, then wrapped into its own volume (`k8s_cloudinit_iso`) so it can be attached to the domain. Networking is fully static, no DHCP, each node gets its IP assigned directly through `network_config`.
+
+```hcl
+resource "libvirt_cloudinit_disk" "k8s_cloudinit" {
+  for_each = var.k8s_nodes
+  name     = "k8s-cloudinit-${each.key}"
+  user_data = templatefile("${path.module}/cloud-init/user-data.tftpl", {
+    hostname           = each.key
+    ssh_authorized_key = var.ssh_authorized_keys
+  })
+  meta_data = yamlencode({
+    instance_id    = each.key
+    local_hostname = each.key
+  })
+  network_config = yamlencode({
+    version = 2
+    ethernets = {
+      vm_nic = {
+        match = {
+          driver = "virtio_net"
+        }
+        dhcp4     = false
+        addresses = [each.value.ip]
+        routes = [{
+          to  = "default"
+          via = "10.9.8.1"
+        }]
+        nameservers = {
+          addresses = ["10.9.8.1", "1.1.1.1"]
+        }
+      }
+    }
+  })
+}
+```
+
+`user-data.tftpl` handles hostname and SSH key injection per node, templated off the same `k8s_nodes` map.
+
 ## End-to-End Provisioning Flow
 
 ## Verification
