@@ -167,3 +167,10 @@ resource "libvirt_domain" "k8s_domain" {
 
 }
 
+
+
+resource "local_file" "ansible_inventory" {
+  filename = "${path.module}/../ansible/inventory.yaml"
+
+
+}

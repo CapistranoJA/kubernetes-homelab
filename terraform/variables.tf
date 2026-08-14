@@ -41,3 +41,9 @@ variable "ssh_authorized_keys" {
   description = "List of SSH public keys for authorized access"
   type        = string
 }
+
+variable "ansible_inventory" {
+  description = "Ansible Inventory Output"
+  type        = string
+  default     = "inventory.yaml"
+}
