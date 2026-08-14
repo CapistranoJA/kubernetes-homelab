@@ -47,3 +47,8 @@ variable "ansible_inventory" {
   type        = string
   default     = "inventory.yaml"
 }
+
+variable "ansible_priv_key" {
+  description = "Ansible priv key for ssh"
+  type = string
+}

@@ -17,6 +17,23 @@ resource "libvirt_volume" "k8s_volume" {
   pool     = libvirt_pool.k8s_pool.name
   capacity = each.value.disk
 
+  backing_store = {
+    path = libvirt_volume.ubuntu.path
+    format = {
+      type = "qcow2"
+    }
+  }
+
+  target = {
+    format = {
+      type = "qcow2"
+    }
+  }
+}
+
+resource "libvirt_volume" "ubuntu" {
+  name     = "ubuntu-26-base-image.qcow2"
+  pool     = libvirt_pool.k8s_pool.name
   target = {
     format = {
       type = "qcow2"
@@ -46,7 +63,7 @@ resource "libvirt_volume" "k8s_cloudinit_iso" {
 resource "libvirt_cloudinit_disk" "k8s_cloudinit" {
   for_each = var.k8s_nodes
   name     = "k8s-cloudinit-${each.key}"
-  user_data = templatefile("${path.module}/cloud-init/user-data.tftpl", {
+  user_data = templatefile("${path.module}/templates/user-data.tftpl", {
     hostname           = each.key
     ssh_authorized_key = var.ssh_authorized_keys
   })
@@ -107,6 +124,7 @@ resource "libvirt_domain" "k8s_domain" {
           bus = "virtio"
         }
         driver = {
+          name = "qemu"
           type = "qcow2"
         }
       },
@@ -168,9 +186,12 @@ resource "libvirt_domain" "k8s_domain" {
 }
 
 
-
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../ansible/inventory.yaml"
+  content = templatefile("${path.module}/templates/ansible-inventory-data.tftpl",{
+    k8s_nodes = var.k8s_nodes
+    ssh_key = var.ansible_priv_key
+  })
 
 
 }
