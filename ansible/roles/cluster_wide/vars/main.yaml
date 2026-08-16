@@ -1,0 +1,5 @@
+containerd:
+  name: "containerd-2.3.2-linux-amd64.tar"
+  version: "2.3.2"
+  url: "https://github.com/containerd/containerd/releases/download/v2.3.2/containerd-2.3.2-linux-amd64.tar.gz"
+  installation_dir: /usr/local/lib/systemd/system
