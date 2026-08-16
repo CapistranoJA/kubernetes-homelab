@@ -23,6 +23,7 @@ variable "k8s_nodes" {
     cpu    = number
     disk   = number
     ip     = string
+    role   = string
   }))
 }
 
