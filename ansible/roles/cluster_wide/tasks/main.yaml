@@ -71,3 +71,108 @@
     regexp: "(?m)^(\\[plugins\\.'io\\.containerd\\.cri\\.v1\\.runtime'\\.containerd\\.runtimes\\.runc\\.options\\].*?^\\s*SystemdCgroup\\s*=\\s*)false\\s*$"
     replace: '\g<1>true'
     
+- name: Enable Containerd
+  ansible.builtin.systemd_service:
+    name: containerd
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+- name: Download runc binaries
+  ansible.builtin.get_url:
+    url: "{{runc.url}}"
+    dest: "/tmp/{{runc.name}}"
+    checksum: "{{runc_checksum}}"
+
+- name: Install Runc
+  ansible.builtin.copy:
+    src: "/tmp/{{runc.name}}"
+    dest: "{{runc.installation_dir}}"
+    mode: "0755"
+    remote_src: yes
+
+- name: Download CNI plugins binary
+  ansible.builtin.get_url:
+    url: "{{cni_plugins.url}}"
+    dest: "/tmp/{{cni_plugins.name}}"
+    checksum: "{{cni_plugins_checksum}}"
+
+- name: Create CNI Plugins Dir
+  ansible.builtin.file:
+    path: "{{cni_plugins.installation_dir}}"
+    state: directory
+    mode: '0755'  
+
+- name: Extraction of CNI Plugins
+  ansible.builtin.unarchive:
+    src: "/tmp/{{cni_plugins.name}}"
+    dest: "{{cni_plugins.installation_dir}}"
+    remote_src: yes
+
+- name: UFW Deny All Incoming
+  community.general.ufw:
+    direction: incoming
+    default: deny
+    
+- name: UFW Allow All Outgoing
+  community.general.ufw:
+    direction: outgoing
+    default: allow
+
+- name: UFW Ports
+  community.general.ufw:
+    rule: allow
+    port: "{{item}}"
+    proto: tcp
+  loop: "{{common_ports_tcp}}"
+
+- name: Install Kubernetes
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+
+- name: Create Key Rings Directory
+  ansible.builtin.file:
+    path: "{{kubernetes.keyrings_dir}}"
+    state: directory
+    mode: '0755'  
+    
+- name: Download Kubernetes Keyrings
+  ansible.builtin.get_url:
+    path: "{{kubernetes.keyrings_url}}"
+    dest: "/tmp/{{kubernetes.keyrings_name}}"
+
+- name: Dearmor keyrings with gpg
+  ansible.builtin.command:
+    cmd: "gpg --dearmor -o {{kubernetes.keyrings_dir}}/kubernetes-apt-keyring.gpg /tmp/{{kubernetes.keyrings_name}}"
+
+- name: Add k8s apt repository
+  ansible.builtin.copy:
+    content: "{{kubernetes.apt_repo}}"
+    dest: "{{kubernetes.apt_repo_path}}"
+
+- name: Update packages for k8s
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Kubernetes
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+  
+- name: Pin kubernetes version
+  ansible.builtin.dpkg_selections:
+    name: "{{item}}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl 

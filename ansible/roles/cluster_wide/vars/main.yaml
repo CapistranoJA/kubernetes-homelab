@@ -7,3 +7,31 @@ containerd:
   main_systemd_unit: "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
   config_dir: "/etc/containerd"
   config_name: "config.toml"
+
+runc_version: "1.4.3"
+runc_checksum: "sha256:f6ae8efc0fa40079e1475e97cbe9d1bd3f106a28d6af78a11d9f1bd565515e60"
+runc:
+  name: "runc.amd64"
+  url: "https://github.com/opencontainers/runc/releases/download/v{{runc_version}}/runc.amd64"
+  installation_dir: "/usr/local/sbin/runc"
+
+cni_plugins_version: "1.9.1"
+cni_plugins_checksum: "sha256:b98f74a0f8522f0a83867178729c1aa70f2158f90c45a2ca8fa791db1c76b303"
+cni_plugins:
+  name: "cni-plugins-linux-amd64"
+  url: "https://github.com/containernetworking/plugins/releases/download/v{{cni_plugins_version}}/{{cni_plugins.name}}-v{{cni_plugins_version}}.tgz"
+  installation_dir: "/opt/cni/bin"
+
+common_ports_tcp:
+  - "10250"
+  - "5473"
+  - "179"
+  - "6443"
+
+k8s_version: "1.36"
+kubernetes:
+  keyrings_dir: "/etc/apt/keyrings"
+  keyrings_url: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/deb/Release.key"
+  keyrings_name: "k8s-release.key"
+  apt_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.36/deb/ /"
+  apt_repo_path: "/etc/apt/sources.list.d/kubernetes.list"
