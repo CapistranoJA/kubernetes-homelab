@@ -1,5 +1,9 @@
+containerd_version: "2.3.2"
+containerd_checksum: "sha256:ebf6e710056312628eaf6fb4a1c32f0a4ae5f812568321be4029389d66fc7c7c"
 containerd:
-  name: "containerd-2.3.2-linux-amd64.tar"
-  version: "2.3.2"
-  url: "https://github.com/containerd/containerd/releases/download/v2.3.2/containerd-2.3.2-linux-amd64.tar.gz"
+  name: "containerd-{{containerd_version}}-linux-amd64.tar"
+  url: "https://github.com/containerd/containerd/releases/download/v{{containerd_version}}/containerd-{{containerd_version}}-linux-amd64.tar.gz"
   installation_dir: /usr/local/lib/systemd/system
+  main_systemd_unit: "https://raw.githubusercontent.com/containerd/containerd/main/containerd.service"
+  config_dir: "/etc/containerd"
+  config_name: "config.toml"

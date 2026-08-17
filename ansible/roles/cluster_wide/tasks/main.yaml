@@ -18,8 +18,8 @@
     sysctl_file: /etc/sysctl.d/k8s.conf
     name: net.ipv4.ip_forward
     value: 1
-    sysctl_set: true
-    reload: true
+    sysctl_set: yes
+    reload: yes
 
 - name: Load Overlay module
   community.general.modprobe:
@@ -27,6 +27,40 @@
     state: present
     persistent: present
 
-- name: Download LTS of containerd
-  ansible.builtin.apt:
-    name: containerd.io=
+- name: Download containerd pinned version
+  ansible.builtin.get_url:
+    url: "{{containerd.url}}"
+    dest: "/tmp/{{containerd.name}}"
+    checksum: "{{containerd_checksum}}"
+
+- name: Extraction of containerd
+  ansible.builtin.unarchive:
+    src: "/tmp/{{containerd.name}}"
+    dest: /usr/local
+    remote_src: yes
+
+- name: Create containerd directory
+  ansible.builtin.file:
+    path: "{{containerd.installation_dir}}"
+    state: directory
+    mode: '0755'
+
+- name: Download Systemd service unit
+  ansible.builtin.get_url:
+    url: "{{containerd.main_systemd_unit}}"
+    dest: "{{containerd.installation_dir}}"
+
+- name: Reload daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Create containerd config directory
+  ansible.builtin.file:
+    path: "{{containerd.config_dir}}"
+    state: directory
+    mode: '0755'
+
+- name: Get default containerd config
+  ansible.builtin.command:
+    cmd: "containerd config default > {{containerd.config_dir}}/{{containerd.config_name}}"
+    creates: "{{containerd.config_dir}}/{{containerd.config_name}}"
