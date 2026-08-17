@@ -88,7 +88,7 @@
   ansible.builtin.copy:
     src: "/tmp/{{runc.name}}"
     dest: "{{runc.installation_dir}}"
-    mode: "0755"
+    mode: '0755'
     remote_src: yes
 
 - name: Download CNI plugins binary

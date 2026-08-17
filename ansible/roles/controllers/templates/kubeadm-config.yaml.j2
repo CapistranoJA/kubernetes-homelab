@@ -1,14 +1,14 @@
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
-kubernetesVersion: v1.36.0
-controlPlaneEndpoint: "10.9.8.50:6443"
+kubernetesVersion: {{kubernetes_version}}
+controlPlaneEndpoint: "{{control_plane_endpoint}}"
 networking:
-  podSubnet: "10.244.0.0/16"
+  podSubnet: "{{pod_subnet}}"
 ---
 apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
 localAPIEndpoint:
-  advertiseAddress: "10.9.8.50"
+  advertiseAddress: "{{advertise_address}}"
   bindPort: 6443
 nodeRegistration:
-  name: lotus
+  name: {{node_name}}
