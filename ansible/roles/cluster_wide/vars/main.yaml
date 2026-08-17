@@ -27,6 +27,7 @@ common_ports_tcp:
   - "5473"
   - "179"
   - "6443"
+  - "22"
 
 k8s_version: "1.36"
 kubernetes:

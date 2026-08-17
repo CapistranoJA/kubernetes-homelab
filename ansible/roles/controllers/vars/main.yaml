@@ -1,7 +1,14 @@
 kube_config_path: "/etc/kubernetes"
 
-kubernetes_version: "v1.3.6"
+kubernetes_version: "v1.36.0"
 control_plane_endpoint: "10.9.8.50:6443"
 pod_subnet: "10.244.0.0/16"
 advertise_address: "10.9.8.50"
 node_name: "lotus"
+
+kube_config_dest: "/run/media/capistranoja/Shared/_Personal/Labs/resources/"
+
+controller_ports_tcp:
+  - "2379:2380"
+  - "10259"
+  - "10257"

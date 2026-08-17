@@ -1,7 +1,14 @@
+- name: Controller Allowed additional ports
+  community.general.ufw:
+    rule: allow
+    port: "{{item}}"
+    proto: tcp
+  loop: "{{controller_ports_tcp}}"
+
 - name: Create /etc/kubernetes directory
   ansible.builtin.file:
-    path: {{kube_config_path}}
-    state: present
+    path: "{{kube_config_path}}"
+    state: directory
     mode: '0755'
 
 - name: Kubeadm configuration
@@ -12,3 +19,19 @@
     group: root
     mode: '0600'
 
+- name: Initialize Kubeadm 
+  ansible.builtin.command:
+    cmd: "kubeadm init --config {{kube_config_path}}/kubeadm-config.yaml"
+    creates: "/etc/kubernetes/admin.conf"
+    
+- name: Print Join Command
+  ansible.builtin.command:
+    cmd: "kubeadm token create --print-join-command"
+  register: kubeadm_join_command
+  changed_when: false
+
+- name: Get Kubeconfig
+  ansible.builtin.fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: "{{kube_config_dest}}"
+    flat: true

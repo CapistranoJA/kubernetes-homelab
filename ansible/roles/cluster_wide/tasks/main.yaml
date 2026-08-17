@@ -109,6 +109,12 @@
     dest: "{{cni_plugins.installation_dir}}"
     remote_src: yes
 
+- name: Enable UFW systemd unit
+  ansible.builtin.systemd_service:
+    name: ufw
+    state: started
+    enabled: yes
+    
 - name: UFW Deny All Incoming
   community.general.ufw:
     direction: incoming
@@ -125,6 +131,10 @@
     port: "{{item}}"
     proto: tcp
   loop: "{{common_ports_tcp}}"
+
+- name: Enable UFW firewall
+  community.general.ufw:
+    state: enabled
 
 - name: Install Kubernetes
   ansible.builtin.apt:
@@ -144,13 +154,13 @@
     
 - name: Download Kubernetes Keyrings
   ansible.builtin.get_url:
-    path: "{{kubernetes.keyrings_url}}"
+    url: "{{kubernetes.keyrings_url}}"
     dest: "/tmp/{{kubernetes.keyrings_name}}"
 
 - name: Dearmor keyrings with gpg
   ansible.builtin.command:
     cmd: "gpg --dearmor -o {{kubernetes.keyrings_dir}}/kubernetes-apt-keyring.gpg /tmp/{{kubernetes.keyrings_name}}"
-
+    creates: "{{kubernetes.keyrings_dir}}/kubernetes-apt-keyring.gpg"
 - name: Add k8s apt repository
   ansible.builtin.copy:
     content: "{{kubernetes.apt_repo}}"
