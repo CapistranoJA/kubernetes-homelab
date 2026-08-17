@@ -1,5 +1,5 @@
 containerd_version: "2.3.2"
-containerd_checksum: "sha256:ebf6e710056312628eaf6fb4a1c32f0a4ae5f812568321be4029389d66fc7c7c"
+containerd_checksum: "sha256:75625e6f6595bb95f3fb9c8123a60534af4a8d9b52d7617065967bcefe71a17a"
 containerd:
   name: "containerd-{{containerd_version}}-linux-amd64.tar"
   url: "https://github.com/containerd/containerd/releases/download/v{{containerd_version}}/containerd-{{containerd_version}}-linux-amd64.tar.gz"

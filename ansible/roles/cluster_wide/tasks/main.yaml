@@ -61,6 +61,13 @@
     mode: '0755'
 
 - name: Get default containerd config
-  ansible.builtin.command:
+  ansible.builtin.shell:
     cmd: "containerd config default > {{containerd.config_dir}}/{{containerd.config_name}}"
     creates: "{{containerd.config_dir}}/{{containerd.config_name}}"
+
+- name: Set Runc SystemdCgroups to true in config.toml
+  ansible.builtin.replace:
+    path: "{{containerd.config_dir}}/{{containerd.config_name}}"
+    regexp: "(?m)^(\\[plugins\\.'io\\.containerd\\.cri\\.v1\\.runtime'\\.containerd\\.runtimes\\.runc\\.options\\].*?^\\s*SystemdCgroup\\s*=\\s*)false\\s*$"
+    replace: '\g<1>true'
+    
