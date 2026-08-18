@@ -1,0 +1,4 @@
+- name: Join worker to Kubernetes cluster
+  ansible.builtin.command:
+    cmd: "{{ hostvars[groups['controllers'][0]]['kubeadm_join_command'].stdout | trim }}"
+    creates: /etc/kubernetes/kubelet.conf
