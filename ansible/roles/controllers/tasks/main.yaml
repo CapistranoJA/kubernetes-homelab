@@ -35,3 +35,47 @@
     src: /etc/kubernetes/admin.conf
     dest: "{{kube_config_dest}}"
     flat: true
+
+- name: Ensure python is installed
+  ansible.builtin.apt:
+    name: python3-full
+    state: present
+    update_cache: true
+
+- name: Create venv for k8s modules
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/k8s-venv
+    creates: /opt/k8s-venv/bin/python
+
+- name: Install k8s module requirements into venv
+  ansible.builtin.pip:
+    name:
+      - kubernetes>=24.2.0
+      - jsonpatch>=1.32
+      - pyYAML>=6.0
+    virtualenv: /opt/k8s-venv
+    virtualenv_command: python3 -m venv
+
+- name: Bootstrap CNI(Calico)
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', playbook_dir + '/../../cluster/cni/v1_crd_projectcalico_org.yaml') | from_yaml_all | list }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+  vars:
+    ansible_python_interpreter: /opt/k8s-venv/bin/python
+
+- name: Bootstrap CNI(Tigera Operator)
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', playbook_dir + '/../../cluster/cni/tigera-operator.yaml') | from_yaml_all | list }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+  vars:
+    ansible_python_interpreter: /opt/k8s-venv/bin/python
+
+- name: Bootstrap CNI(eBPF data plane)
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', playbook_dir + '/../../cluster/cni/custom-resources-bpf.yaml') | from_yaml_all | list }}"
+    kubeconfig: /etc/kubernetes/admin.conf
+  vars:
+    ansible_python_interpreter: /opt/k8s-venv/bin/python
