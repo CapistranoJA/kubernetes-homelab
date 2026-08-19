@@ -1,0 +1,7 @@
+
+worker_ports_tcp:
+  - "10256"
+  - "30000:32767"
+
+worker_ports_udp:
+  - "30000:32767"

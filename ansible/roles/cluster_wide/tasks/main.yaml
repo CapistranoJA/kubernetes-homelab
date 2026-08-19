@@ -136,6 +136,13 @@
   community.general.ufw:
     state: enabled
 
+- name: Set UFW forward policy to ACCEPT for Calico
+  lineinfile:
+    path: /etc/default/ufw
+    regexp: '^DEFAULT_FORWARD_POLICY='
+    line: 'DEFAULT_FORWARD_POLICY="ACCEPT"'
+  notify: reload ufw
+
 - name: Install Kubernetes
   ansible.builtin.apt:
     name:
