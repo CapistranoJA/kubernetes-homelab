@@ -1,0 +1,3 @@
+{%for nodes in groups['tenno_cluster'] %}
+{{ hostvars[nodes]['ansible_host']}} {{nodes}}
+{% endfor %}

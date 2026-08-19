@@ -1,0 +1,20 @@
+- name: Node Preparation (All nodes)
+  hosts: tenno_cluster
+  become: true
+
+  roles:
+    - cluster_wide
+    
+- name: Controller Preparation
+  hosts: controllers
+  become: true
+
+  roles:
+    - controllers
+
+- name: Worker Preparation
+  hosts: workers
+  become: true
+
+  roles:
+    - workers

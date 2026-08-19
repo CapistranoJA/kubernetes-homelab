@@ -1,0 +1,18 @@
+- name: UFW Ports TCP
+  community.general.ufw:
+    rule: allow
+    port: "{{item}}"
+    proto: tcp
+  loop: "{{worker_ports_tcp}}"
+
+- name: UFW Ports UDP
+  community.general.ufw:
+    rule: allow
+    port: "{{item}}"
+    proto: tcp
+  loop: "{{worker_ports_udp}}"
+
+- name: Join worker to Kubernetes cluster
+  ansible.builtin.command:
+    cmd: "{{ hostvars[groups['controllers'][0]]['kubeadm_join_command'].stdout | trim }}"
+    creates: /etc/kubernetes/kubelet.conf

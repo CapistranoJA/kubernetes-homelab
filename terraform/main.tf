@@ -100,6 +100,9 @@ resource "libvirt_domain" "k8s_domain" {
   memory_unit = "MiB"
   vcpu        = each.value.cpu
   type        = "kvm"
+  cpu = {
+    mode = "host-passthrough"
+  }
 
   os = {
     type         = "hvm"

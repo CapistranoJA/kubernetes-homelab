@@ -1,8 +1,21 @@
-tenno-cluster:
+tenno_cluster:
+  children:
+    controllers:
+      hosts:
+%{for name, node in k8s_nodes ~}
+%{if node.role == "controller" ~}
+        ${name}:
+          ansible_host: ${split("/", node.ip)[0]}
+%{endif ~}
+%{endfor ~}
+    workers:
+      hosts:
+%{for name, node in k8s_nodes ~}
+%{if node.role == "worker" ~}
+        ${name}:
+          ansible_host: ${split("/", node.ip)[0]}
+%{endif ~}
+%{endfor ~}
   vars:
     ansible_ssh_private_key_file: ${ssh_key}
-  hosts:
-%{ for name, node in k8s_nodes ~}
-    ${name}:
-      ansible_host: ${split("/",node.ip)[0]}
-%{ endfor ~}  
+    ansible_user: ubuntu  

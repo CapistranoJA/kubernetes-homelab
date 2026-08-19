@@ -1,0 +1,195 @@
+- name: Update System
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Upgrade the system
+  ansible.builtin.apt:
+    upgrade: yes
+
+- name: Add Host entries in etc/hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} k8s Hosts"
+    block: "{{ lookup('template','hosts.j2') }}"
+    insertafter: EOF
+
+- name: Add IP Forwarding
+  ansible.posix.sysctl:
+    sysctl_file: /etc/sysctl.d/k8s.conf
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    reload: yes
+
+- name: Load Overlay module
+  community.general.modprobe:
+    name: overlay
+    state: present
+    persistent: present
+
+- name: Download containerd pinned version
+  ansible.builtin.get_url:
+    url: "{{containerd.url}}"
+    dest: "/tmp/{{containerd.name}}"
+    checksum: "{{containerd_checksum}}"
+
+- name: Extraction of containerd
+  ansible.builtin.unarchive:
+    src: "/tmp/{{containerd.name}}"
+    dest: /usr/local
+    remote_src: yes
+
+- name: Create containerd directory
+  ansible.builtin.file:
+    path: "{{containerd.installation_dir}}"
+    state: directory
+    mode: '0755'
+
+- name: Download Systemd service unit
+  ansible.builtin.get_url:
+    url: "{{containerd.main_systemd_unit}}"
+    dest: "{{containerd.installation_dir}}"
+
+- name: Reload daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Create containerd config directory
+  ansible.builtin.file:
+    path: "{{containerd.config_dir}}"
+    state: directory
+    mode: '0755'
+
+- name: Get default containerd config
+  ansible.builtin.shell:
+    cmd: "containerd config default > {{containerd.config_dir}}/{{containerd.config_name}}"
+    creates: "{{containerd.config_dir}}/{{containerd.config_name}}"
+
+- name: Set Runc SystemdCgroups to true in config.toml
+  ansible.builtin.replace:
+    path: "{{containerd.config_dir}}/{{containerd.config_name}}"
+    regexp: "(?m)^(\\[plugins\\.'io\\.containerd\\.cri\\.v1\\.runtime'\\.containerd\\.runtimes\\.runc\\.options\\].*?^\\s*SystemdCgroup\\s*=\\s*)false\\s*$"
+    replace: '\g<1>true'
+    
+- name: Enable Containerd
+  ansible.builtin.systemd_service:
+    name: containerd
+    enabled: yes
+    daemon_reload: yes
+    state: restarted
+
+- name: Download runc binaries
+  ansible.builtin.get_url:
+    url: "{{runc.url}}"
+    dest: "/tmp/{{runc.name}}"
+    checksum: "{{runc_checksum}}"
+
+- name: Install Runc
+  ansible.builtin.copy:
+    src: "/tmp/{{runc.name}}"
+    dest: "{{runc.installation_dir}}"
+    mode: '0755'
+    remote_src: yes
+
+- name: Download CNI plugins binary
+  ansible.builtin.get_url:
+    url: "{{cni_plugins.url}}"
+    dest: "/tmp/{{cni_plugins.name}}"
+    checksum: "{{cni_plugins_checksum}}"
+
+- name: Create CNI Plugins Dir
+  ansible.builtin.file:
+    path: "{{cni_plugins.installation_dir}}"
+    state: directory
+    mode: '0755'  
+
+- name: Extraction of CNI Plugins
+  ansible.builtin.unarchive:
+    src: "/tmp/{{cni_plugins.name}}"
+    dest: "{{cni_plugins.installation_dir}}"
+    remote_src: yes
+
+- name: Enable UFW systemd unit
+  ansible.builtin.systemd_service:
+    name: ufw
+    state: started
+    enabled: yes
+    
+- name: UFW Deny All Incoming
+  community.general.ufw:
+    direction: incoming
+    default: deny
+    
+- name: UFW Allow All Outgoing
+  community.general.ufw:
+    direction: outgoing
+    default: allow
+
+- name: UFW Ports
+  community.general.ufw:
+    rule: allow
+    port: "{{item}}"
+    proto: tcp
+  loop: "{{common_ports_tcp}}"
+
+- name: Enable UFW firewall
+  community.general.ufw:
+    state: enabled
+
+- name: Set UFW forward policy to ACCEPT for Calico
+  lineinfile:
+    path: /etc/default/ufw
+    regexp: '^DEFAULT_FORWARD_POLICY='
+    line: 'DEFAULT_FORWARD_POLICY="ACCEPT"'
+  notify: reload ufw
+
+- name: Install Kubernetes
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+    update_cache: yes
+
+- name: Create Key Rings Directory
+  ansible.builtin.file:
+    path: "{{kubernetes.keyrings_dir}}"
+    state: directory
+    mode: '0755'  
+    
+- name: Download Kubernetes Keyrings
+  ansible.builtin.get_url:
+    url: "{{kubernetes.keyrings_url}}"
+    dest: "/tmp/{{kubernetes.keyrings_name}}"
+
+- name: Dearmor keyrings with gpg
+  ansible.builtin.command:
+    cmd: "gpg --dearmor -o {{kubernetes.keyrings_dir}}/kubernetes-apt-keyring.gpg /tmp/{{kubernetes.keyrings_name}}"
+    creates: "{{kubernetes.keyrings_dir}}/kubernetes-apt-keyring.gpg"
+- name: Add k8s apt repository
+  ansible.builtin.copy:
+    content: "{{kubernetes.apt_repo}}"
+    dest: "{{kubernetes.apt_repo_path}}"
+
+- name: Update packages for k8s
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Kubernetes
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+  
+- name: Pin kubernetes version
+  ansible.builtin.dpkg_selections:
+    name: "{{item}}"
+    selection: hold
+  loop:
+    - kubelet
+    - kubeadm
+    - kubectl 
