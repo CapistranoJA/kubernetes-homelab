@@ -22,6 +22,8 @@ This repo tracks a self-hosted, QEMU/KVM Kubernetes cluster built to simulate a 
 
 ### Target:
 
+<img width="702" height="971" alt="image" src="https://github.com/user-attachments/assets/9c233759-3fb2-49aa-b6c6-d9763bdd70cb" />
+
 
 ## Network
 ![Static Badge](https://img.shields.io/badge/Status-In--Progress-yellow)
