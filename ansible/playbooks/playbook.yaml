@@ -18,3 +18,11 @@
 
   roles:
     - workers
+
+- name: Bastion Preparation
+  hosts: bastion
+  become: true
+
+  roles:
+    - bastion
+    - argocd

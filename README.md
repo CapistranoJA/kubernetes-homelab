@@ -15,10 +15,12 @@ This repo tracks a self-hosted, QEMU/KVM Kubernetes cluster built to simulate a 
 
 ## Architecture
 
-Current:
+### Current:
+
 <img width="462" height="532" alt="Tenno-cluster drawio" src="https://github.com/user-attachments/assets/b5d70eb1-a62b-4f38-bd90-433c353e3a9b" />
 
-Target:
+
+### Target:
 
 
 ## Network
