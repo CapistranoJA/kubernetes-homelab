@@ -108,8 +108,75 @@ Using Terraform's local file provider to generate the inventory was the other bi
 
 CNI bootstrap also went into the controllers role instead of being a separate manual step after kubeadm init. Doing it manually meant remembering to apply the CNI manifest right after cluster init every single time I rebuilt the cluster, and it was easy to forget or apply the wrong version by hand. Folding it into Ansible meant control plane bootstrap and CNI install happen as one consistent, repeatable sequence, no post-init step to remember or get wrong.
 
+
+
 ## Testing / Validation
+
+After running the playbook, I needed a way to confirm the cluster actually came up correctly instead of just assuming the playbook run succeeding meant everything worked.
+
+```bash
+kubectl get nodes -o wide
+```
+
+Confirms all nodes (lotus, excalibur-prime, mag-prime, volt-prime) joined the cluster and show `Ready` status, with the correct roles assigned to controllers vs workers.
+
+```bash
+kubectl get pods -A
+```
+
+Checks that core cluster components and the CNI pods are running without CrashLoopBackOff or Pending states, since a stuck CNI pod usually means networking prep from `cluster_wide` didn't fully apply.
+
 
 ## Execution Steps
 
+Once inventory is generated from Terraform state and roles are in place, running the full bootstrap is a single command from the ansible directory.
+
+```bash
+ansible-playbook -i inventory.yaml playbook.yaml
+```
+
+If I only need to re-run a specific stage (say, worker config changed but controllers didn't), I can target just that play using tags or limit to a host group instead of running the whole thing again.
+
+```bash
+ansible-playbook -i inventory.yaml playbook.yaml --limit workers
+```
+
+Before running against the actual cluster, I usually do a dry run first to catch obvious issues without applying anything.
+
+```bash
+ansible-playbook -i inventory.yaml playbook.yaml --check
+```
+
+For a single node that needs debugging (like a worker that failed to join), I run the play against just that host with increased verbosity.
+
+```bash
+ansible-playbook -i inventory.yaml playbook.yaml --limit excalibur-prime -vvv
+```
+
+After the playbook ran, I will run the script [kube-config-fix.sh](../scripts/kube-config-fix.sh). I used this because I have a separate kubeconfig for work cluster.
+
+```sh
+#!/bin/sh
+
+# Backup current config
+cp ~/.kube/config ~/.kube/config.backup
+
+# Merge, with admin.conf first
+KUBECONFIG=~/.kube/admin.conf:~/.kube/config \
+kubectl config view --flatten --merge > /tmp/kubeconfig
+
+mv /tmp/kubeconfig ~/.kube/config
+chmod 600 ~/.kube/config
+```
+
 ## Verification
+
+- [x] `kubectl get nodes` shows all 4 nodes as `Ready`
+- [x] All pods in `kube-system` and `calico-system` are `Running`
+- [x] CoreDNS pods are running and healthy
+- [x] Static IPs assigned and all 3 nodes reachable via ping from each other
+- [x] Hostnames set correctly (`hostname` command returns correct name)
+- [x] `/etc/hosts` has all 4 node entries
+- [x] Swap disabled (`free -h` shows 0 swap)
+- [x] containerd running (`systemctl status containerd`)
+- [x] kubeadm, kubelet, kubectl installed (`kubeadm version`)
