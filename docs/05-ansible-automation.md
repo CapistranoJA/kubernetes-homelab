@@ -100,6 +100,14 @@ For playbook, the run sequence is cluster_wide, then controllers, and lastly wor
 
 ## Key Design Decisions
 
+I went with roles instead of one big playbook once it became clear controllers and workers needed different configuration entirely, not just different variables. Cramming both into a single playbook with a bunch of when conditionals would've worked, but it gets harder to read and maintain as the cluster grows, especially if I add more node types later (like a dedicated storage role for leverian).
+
+Splitting into cluster_wide, controllers, and workers also mirrors how the actual bootstrap process works: everything gets the same base prep first, then each node type branches into its own setup. This made the playbook run order (cluster_wide, then controllers, then workers) a direct reflection of the real dependency chain, since workers can't join a control plane that isn't bootstrapped yet.
+
+Using Terraform's local file provider to generate the inventory was the other big one. Manually maintaining a static inventory file meant every time I destroyed and reprovisioned the cluster (which happened a lot early on), I'd have to go update IPs by hand. Generating it straight from Terraform state means the inventory is always accurate to whatever's actually running, no manual sync step.
+
+CNI bootstrap also went into the controllers role instead of being a separate manual step after kubeadm init. Doing it manually meant remembering to apply the CNI manifest right after cluster init every single time I rebuilt the cluster, and it was easy to forget or apply the wrong version by hand. Folding it into Ansible meant control plane bootstrap and CNI install happen as one consistent, repeatable sequence, no post-init step to remember or get wrong.
+
 ## Testing / Validation
 
 ## Execution Steps
