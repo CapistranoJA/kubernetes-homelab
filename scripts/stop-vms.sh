@@ -12,5 +12,5 @@ VMS=$(
     '
 )
 for vm in $VMS; do
-  sudo virsh -c qemu:///system start "$vm"
+  sudo virsh -c qemu:///system destroy "$vm"
 done
