@@ -1,0 +1,13 @@
+- name: Add ArgoCD Helm repo
+  kubernetes.core.helm_repository:
+    name: argo
+    repo_url: "{{argocd.url}}"
+
+- name: Bootstrap ArgoCD
+  kubernetes.core.helm:
+    name: argocd
+    chart_ref: argo/argo-cd
+    chart_version: "10.4.0"
+    release_namespace: argocd
+    create_namespace: true
+    state: present

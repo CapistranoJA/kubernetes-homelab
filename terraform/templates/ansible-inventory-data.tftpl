@@ -16,20 +16,20 @@ tenno_cluster:
           ansible_host: ${split("/", node.ip)[0]}
 %{endif ~}
 %{endfor ~}
-    bastion:
-      hosts:
+bastion:
+  hosts:    
 %{for name, node in k8s_nodes ~}
 %{if node.role == "bastion" ~}
-        ${name}:
+    ${name}:
           ansible_host: ${split("/", node.ip)[0]}
 %{endif ~}
 %{endfor ~}
-    storage:
-      hosts:
+storage:
+  hosts:
 %{for name, node in k8s_nodes ~}
 %{if node.role == "storage" ~}
-        ${name}:
-          ansible_host: ${split("/", node.ip)[0]}
+    ${name}:
+      ansible_host: ${split("/", node.ip)[0]}
 %{endif ~}
 %{endfor ~}
   vars:

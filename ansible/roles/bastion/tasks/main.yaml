@@ -1,0 +1,131 @@
+- name: Update APT cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Upgrade system packages
+  ansible.builtin.apt:
+    upgrade: true
+
+- name: Add Kubernetes hosts to /etc/hosts
+  ansible.builtin.blockinfile:
+    path: /etc/hosts
+    marker: "# {mark} k8s Hosts"
+    block: "{{ lookup('template', 'hosts.j2') }}"
+    insertafter: EOF
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gpg
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - jq
+    state: present
+    update_cache: true
+
+- name: Download Helm GPG key
+  ansible.builtin.get_url:
+    url: "{{ helm.gpg_key_url }}"
+    dest: "/tmp/helm.gpg"
+    mode: "0644"
+
+- name: Get Helm GPG fingerprint
+  ansible.builtin.shell:
+    cmd: >
+      gpg --show-keys --with-colons /tmp/helm.gpg |
+      awk -F: '$1 == "fpr" {print $10}' |
+      head -n 1
+  register: helm_gpg_fingerprint
+  changed_when: false
+
+- name: Verify Helm APT key fingerprint
+  ansible.builtin.assert:
+    that:
+      - helm_gpg_fingerprint.stdout | trim == helm.apt_key
+    fail_msg: "ERROR: Unexpected Helm APT key ID: potential key compromise"
+    success_msg: "Helm APT key fingerprint verified"
+    
+- name: Debug Helm GPG fingerprint
+  ansible.builtin.debug:
+    msg:
+      - "Extracted: {{ helm_gpg_fingerprint.stdout }}"
+      - "Expected: {{ helm.apt_key }}"
+      
+- name: Verify Helm APT key fingerprint
+  ansible.builtin.assert:
+    that:
+      - helm_gpg_fingerprint.stdout | trim == helm.apt_key
+    fail_msg: "ERROR: Unexpected Helm APT key ID: potential key compromise"
+    success_msg: "Helm APT key fingerprint verified"
+
+- name: Dearmor and install Helm GPG key
+  ansible.builtin.shell:
+    cmd: gpg --dearmor < /tmp/helm.gpg > /usr/share/keyrings/helm.gpg
+    creates: /usr/share/keyrings/helm.gpg
+
+- name: Add Helm APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/helm.gpg] {{helm.apt_url}} any main"
+    filename: helm-stable-debian
+    state: present
+
+- name: Install Helm
+  ansible.builtin.apt:
+    name: helm
+    state: present
+    update_cache: true
+
+- name: Create Kubernetes keyrings directory
+  ansible.builtin.file:
+    path: "{{ kubernetes.keyrings_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Kubernetes repository signing key
+  ansible.builtin.get_url:
+    url: "{{ kubernetes.keyrings_url }}"
+    dest: "/tmp/{{ kubernetes.keyrings_name }}"
+    mode: "0644"
+
+- name: Dearmor Kubernetes repository signing key
+  ansible.builtin.command:
+    cmd: "gpg --dearmor -o {{ kubernetes.keyrings_dir }}/kubernetes-apt-keyring.gpg /tmp/{{ kubernetes.keyrings_name }}"
+    creates: "{{ kubernetes.keyrings_dir }}/kubernetes-apt-keyring.gpg"
+
+- name: Add Kubernetes APT repository
+  ansible.builtin.copy:
+    content: "{{ kubernetes.apt_repo }}\n"
+    dest: "{{ kubernetes.apt_repo_path }}"
+    mode: "0644"
+
+- name: Update APT cache for Kubernetes
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Install kubectl
+  ansible.builtin.apt:
+    name: kubectl
+    state: present
+
+- name: Hold kubectl version
+  ansible.builtin.dpkg_selections:
+    name: kubectl
+    selection: hold
+
+- name: Create kubeconfig directory
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Install kubeconfig on bastion
+  ansible.builtin.copy:
+    src: "{{ kube_config_dest }}/admin.conf"
+    dest: ~/.kube/config
+    owner: root
+    group: root
+    mode: '0600'
