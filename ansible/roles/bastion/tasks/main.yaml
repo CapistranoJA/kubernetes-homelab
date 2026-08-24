@@ -113,3 +113,19 @@
   ansible.builtin.dpkg_selections:
     name: kubectl
     selection: hold
+
+- name: Create kubeconfig directory
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: '0700'
+
+- name: Install kubeconfig on bastion
+  ansible.builtin.copy:
+    src: "{{ kube_config_dest }}/admin.conf"
+    dest: ~/.kube/config
+    owner: root
+    group: root
+    mode: '0600'

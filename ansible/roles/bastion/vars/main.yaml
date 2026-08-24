@@ -10,3 +10,5 @@ kubernetes:
   keyrings_name: "k8s-release.key"
   apt_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.36/deb/ /"
   apt_repo_path: "/etc/apt/sources.list.d/kubernetes.list"
+
+kube_config_dest: "~/.kube/"
