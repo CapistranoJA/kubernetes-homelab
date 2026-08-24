@@ -1,0 +1,12 @@
+helm:
+  apt_key: "DDF78C3E6EBB2D2CC223C95C62BA89D07698DBC6"
+  apt_url: "https://packages.buildkite.com/helm-linux/helm-debian/any/"
+  gpg_key_url: "https://packages.buildkite.com/helm-linux/helm-debian/gpgkey"
+  
+k8s_version: "1.36"
+kubernetes:
+  keyrings_dir: "/etc/apt/keyrings"
+  keyrings_url: "https://pkgs.k8s.io/core:/stable:/v{{k8s_version}}/deb/Release.key"
+  keyrings_name: "k8s-release.key"
+  apt_repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.36/deb/ /"
+  apt_repo_path: "/etc/apt/sources.list.d/kubernetes.list"
