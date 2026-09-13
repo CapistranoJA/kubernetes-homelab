@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/CapistranoJA/kubernetes-homelab.git
     targetRevision: HEAD
-    path: apps/bootstrap
+    path: appsets
 
   destination:
     server: https://kubernetes.default.svc
@@ -19,6 +19,5 @@ spec:
     syncOptions:
       - CreateNamespace=true
     automated:
-      enabled: true
       prune: true
       selfHeal: true

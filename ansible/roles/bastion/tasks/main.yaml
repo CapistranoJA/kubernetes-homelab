@@ -2,9 +2,37 @@
   ansible.builtin.apt:
     update_cache: true
 
+- name: Ensure dpkg is in a consistent state
+  ansible.builtin.command: dpkg --configure -a
+  become: true
+  changed_when: false
+  failed_when: false
+
 - name: Upgrade system packages
   ansible.builtin.apt:
     upgrade: true
+    update_cache: true
+    
+- name: Ensure python is installed
+  ansible.builtin.apt:
+    name: python3-full
+    state: present
+    update_cache: true
+
+- name: Create venv for k8s modules
+  ansible.builtin.command:
+    cmd: python3 -m venv /opt/k8s-venv
+    creates: /opt/k8s-venv/bin/python
+
+- name: Install k8s module requirements into venv
+  ansible.builtin.pip:
+    name:
+      - kubernetes>=24.2.0
+      - jsonpatch>=1.32
+      - pyYAML>=6.0
+    virtualenv: /opt/k8s-venv
+    virtualenv_command: python3 -m venv
+
 
 - name: Add Kubernetes hosts to /etc/hosts
   ansible.builtin.blockinfile:

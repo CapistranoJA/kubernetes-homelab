@@ -7,7 +7,15 @@
   kubernetes.core.helm:
     name: argocd
     chart_ref: argo/argo-cd
-    chart_version: "10.4.0"
+    chart_version: "{{argocd.version}}"
     release_namespace: argocd
     create_namespace: true
     state: present
+
+- name: Bootstrap App of apps
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('file', playbook_dir + '/../../root-app.yaml') | from_yaml_all | list }}"
+    kubeconfig: "{{kube_config_dest}}/config"
+  vars:
+    ansible_python_interpreter: /opt/k8s-venv/bin/python
