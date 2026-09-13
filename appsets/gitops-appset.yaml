@@ -10,7 +10,7 @@ spec:
   generators:
     - list:
         elements:
-          - name: argo-cd
+          - name: argocd
             repoURL: https://argoproj.github.io/argo-helm
             targetRevision: 10.4.0
             namespace: argocd
