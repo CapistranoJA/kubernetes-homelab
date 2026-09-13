@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: network
+  namespace: argocd
+
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+
+  generators:
+    - git:
+        repoURL: https://github.com/CapistranoJA/kubernetes-homelab.git
+        revision: main
+        directories:
+          - path: apps/network/*/base
+
+  template:
+    metadata:
+      name: '{{index .path.segments 2}}'
+
+    spec:
+      project: default
+
+      source:
+        repoURL: https://github.com/CapistranoJA/kubernetes-homelab.git
+        targetRevision: main
+        path: '{{.path.path}}'
+
+      destination:
+        server: https://kubernetes.default.svc
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
