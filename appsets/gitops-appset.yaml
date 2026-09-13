@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: gitops-appset
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - name: argocd
+            repoURL: https://argoproj.github.io/argo-helm
+            targetRevision: 10.4.0
+            namespace: argocd
+            chart: argo-cd
+
+  template:
+    metadata:
+      name: '{{name}}'
+    spec:
+      project: default
+      source:
+        repoURL: '{{repoURL}}'
+        targetRevision: '{{targetRevision}}'
+        chart: '{{chart}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

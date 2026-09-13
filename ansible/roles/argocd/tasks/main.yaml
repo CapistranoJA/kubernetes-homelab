@@ -15,7 +15,7 @@
 - name: Bootstrap App of apps
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('file', playbook_dir + '/../../app-bootstrap/root-app.yaml') | from_yaml_all | list }}"
+    definition: "{{ lookup('file', playbook_dir + '/../../root-app.yaml') | from_yaml_all | list }}"
     kubeconfig: "{{kube_config_dest}}/config"
   vars:
     ansible_python_interpreter: /opt/k8s-venv/bin/python
