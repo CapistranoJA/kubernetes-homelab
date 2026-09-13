@@ -59,7 +59,7 @@
 - name: Bootstrap CNI(Calico)
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('file', playbook_dir + '/../../cluster/cni/v1_crd_projectcalico_org.yaml') | from_yaml_all | list }}"
+    definition: "{{ lookup('file', playbook_dir + '/../../apps/network/cni/base/v1_crd_projectcalico_org.yaml') | from_yaml_all | list }}"
     kubeconfig: /etc/kubernetes/admin.conf
   vars:
     ansible_python_interpreter: /opt/k8s-venv/bin/python
@@ -67,7 +67,7 @@
 - name: Bootstrap CNI(Tigera Operator)
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('file', playbook_dir + '/../../cluster/cni/tigera-operator.yaml') | from_yaml_all | list }}"
+    definition: "{{ lookup('file', playbook_dir + '/../../apps/network/cni/base/tigera-operator.yaml') | from_yaml_all | list }}"
     kubeconfig: /etc/kubernetes/admin.conf
   vars:
     ansible_python_interpreter: /opt/k8s-venv/bin/python
@@ -75,7 +75,7 @@
 - name: Bootstrap CNI(eBPF data plane)
   kubernetes.core.k8s:
     state: present
-    definition: "{{ lookup('file', playbook_dir + '/../../cluster/cni/custom-resources-bpf.yaml') | from_yaml_all | list }}"
+    definition: "{{ lookup('file', playbook_dir + '/../../apps/network/cni/base/custom-resources-bpf.yaml') | from_yaml_all | list }}"
     kubeconfig: /etc/kubernetes/admin.conf
   vars:
     ansible_python_interpreter: /opt/k8s-venv/bin/python
