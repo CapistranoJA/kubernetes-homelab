@@ -3,11 +3,14 @@ kind: ApplicationSet
 metadata:
   name: gitops-appset
   namespace: argocd
+
 spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
   generators:
     - list:
         elements:
-          - name: argocd
+          - name: argo-cd
             repoURL: https://argoproj.github.io/argo-helm
             targetRevision: 10.4.0
             namespace: argocd
@@ -15,16 +18,19 @@ spec:
 
   template:
     metadata:
-      name: '{{name}}'
+      name: '{{.name}}'
     spec:
       project: default
+
       source:
-        repoURL: '{{repoURL}}'
-        targetRevision: '{{targetRevision}}'
-        chart: '{{chart}}'
+        repoURL: '{{.repoURL}}'
+        targetRevision: '{{.targetRevision}}'
+        chart: '{{.chart}}'
+
       destination:
         server: https://kubernetes.default.svc
-        namespace: '{{namespace}}'
+        namespace: '{{.namespace}}'
+
       syncPolicy:
         automated:
           prune: true
